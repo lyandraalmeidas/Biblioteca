@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
     <link  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+CA:wght@100..400&display=swap" rel="stylesheet">
 
 </head>
 <body>
@@ -18,8 +21,15 @@
     <main class="container my-4">
         <h1>Bem-vindo à Biblioteca Pessoal</h1>
         <p>Gerencie seus livros favoritos de forma fácil e rápida.</p>
+
+        <div class="create">
+            <h2>Adicionar Novo Livro</h2>
+            <a href="create.php" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> +
+            </a>
+        </div>
     </main>
-    
+
     <?php include 'partials/footer.php'; ?>
 </body>
 </html>
