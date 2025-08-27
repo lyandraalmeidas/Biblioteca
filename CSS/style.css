@@ -1,0 +1,112 @@
+:root {
+    --primary-color: #fff;         
+    --secondary-color: #353535;    
+    --font-color: #353535;            
+    --background-color: #f7f7f7;   
+    --accent-color: #353535;       /* Rosa suave */
+    --accent-hover: #222;       /* Rosa mais forte */
+}
+
+body {
+    background-color: var(--background-color);
+    background-image: url('../assets/banner1.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+header {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 10px 0;
+}
+
+header h1 {
+    font-family: "Dancing Script", cursive;
+    font-size: 26px;
+    color: var(--font-color);
+    margin: 0;
+}
+
+/* Main */
+main {
+    min-height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Formulário */
+form {
+    border-radius: 20px;
+    border: 2px solid var(--accent-color);
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+    padding: 25px;
+    transition: transform 0.2s ease;
+}
+
+form:hover {
+    transform: translateY(-3px);
+}
+
+form h2 {
+    font-family: "Dancing Script", cursive;
+    color: var(--accent-color);
+    font-weight: 600;
+    font-size: 28px;
+}
+
+form label {
+    color: var(--font-color);
+    font-weight: 500;
+}
+
+form .form-control {
+    border-radius: 12px;
+    border: 1.5px solid #ddd;
+    background: rgba(255,255,255,0.9);
+}
+
+/* Botões */
+.btn-pink {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.btn-pink:hover {
+    background: var(--accent-hover);
+}
+
+.btn-outline-pink {
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 12px;
+    font-weight: 600;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-pink:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+/* Footer */
+footer {
+    height: 90px;
+    background-color: var(--primary-color);
+    color: var(--font-color);
+    text-align: center;
+    padding: 14px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
