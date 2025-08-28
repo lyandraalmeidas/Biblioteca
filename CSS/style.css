@@ -13,17 +13,30 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    /* Use the Indie Flower font (loaded in pages) for a consistent look */
+    font-family: 'Indie Flower', cursive, sans-serif;
     color: var(--font-color);
     margin: 0;
     padding: 0;
 }
 
 /* Header */
+/* Header */
 header {
-    background-color: var(--primary-color);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    /* Use the same translucent white background and accent border as the form */
+    background-color: var(--primary-color) !important;
+    border-bottom: 2px solid var(--accent-color);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
     padding: 10px 0;
+}
+
+.navbar .navbar-brand, .navbar .nav-link {
+    color: var(--accent-color) !important;
+}
+
+.navbar .btn {
+    border-radius: 12px;
+    font-weight: 600;
 }
 
 header h1 {
