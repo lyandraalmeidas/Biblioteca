@@ -1,7 +1,8 @@
 <?php
-//footer/partials/footer.php
+// Footer parcial
 ?>
-
-<footer>
-        <p class="mb-0">&copy; 2025 Biblioteca Pessoal</p>
+<footer class="border-top py-3 mt-auto">
+  <div class="container">
+    <p class="text-center mb-0">&copy; <?php echo date('Y'); ?> Biblioteca Pessoal</p>
+  </div>
 </footer>
