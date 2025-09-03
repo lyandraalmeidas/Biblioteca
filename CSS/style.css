@@ -16,8 +16,13 @@ body {
     /* Use the Indie Flower font (loaded in pages) for a consistent look */
     font-family: 'Indie Flower', cursive, sans-serif;
     color: var(--font-color);
-    margin: 0;
-    padding: 0;
+     margin: 0;
+     padding: 0;
+     /* Make the page a vertical flex container so the footer can stick to the bottom
+         and scale naturally instead of using a fixed height */
+     display: flex;
+     flex-direction: column;
+     min-height: 100vh;
 }
 
 /* Header */
@@ -28,6 +33,21 @@ header {
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 6px 24px rgba(0,0,0,0.08);
     padding: 10px 0;
+}
+
+/* Ensure the inner navbar doesn't introduce a different background color
+   (Bootstrap utility classes like `bg-body-tertiary` can add another layer).
+   Keep the navbar transparent so the header background is the single source. */
+.navbar {
+    background-color: transparent !important;
+}
+
+/* Make the toggler icon clearly visible on the light header */
+.navbar-toggler {
+    border-color: rgba(0,0,0,0.08);
+}
+.navbar-toggler-icon {
+    filter: none;
 }
 
 .navbar .navbar-brand, .navbar .nav-link {
@@ -48,10 +68,12 @@ header h1 {
 
 /* Main */
 main {
-    min-height: 75vh;
+    /* Let main expand to fill available vertical space so footer sits at page bottom */
+    flex: 1 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 1.25rem 0;
 }
 
 /* Formulário */
@@ -116,10 +138,12 @@ form .form-control {
 
 /* Footer */
 footer {
-    height: 90px;
+    /* Avoid fixed heights; use comfortable responsive padding */
     background-color: var(--primary-color);
     color: var(--font-color);
     text-align: center;
-    padding: 14px 0;
+    padding: 0.75rem 0;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    /* Ensure footer sits after main when using flex layout */
+    margin-top: auto;
 }

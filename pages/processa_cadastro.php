@@ -96,14 +96,15 @@ try {
     }
 
     $now = (new DateTime())->format('Y-m-d H:i:s');
-    $insert = $pdo->prepare('INSERT INTO users (name, email, password, created_at, updated_at) VALUES (:name, :email, :password, :created_at, :updated_at)');
-    $insert->execute([
-        ':name' => $nome,
-        ':email' => $email,
-        ':password' => $passwordHash,
-        ':created_at' => $now,
-        ':updated_at' => $now,
-    ]);
+        $insert = $pdo->prepare('INSERT INTO users (name, email, telefone, password, created_at, updated_at) VALUES (:name, :email, :telefone, :password, :created_at, :updated_at)');
+        $insert->execute([
+            ':name' => $nome,
+            ':email' => $email,
+            ':telefone' => $telefone,
+            ':password' => $passwordHash,
+            ':created_at' => $now,
+            ':updated_at' => $now,
+        ]);
 
     $userId = $pdo->lastInsertId();
 
@@ -112,6 +113,7 @@ try {
         'id' => $userId,
         'name' => $nome,
         'email' => $email,
+        'telefone' => $telefone,
     ];
 
     header('Location: ' . resolve_redirect('home.php'));

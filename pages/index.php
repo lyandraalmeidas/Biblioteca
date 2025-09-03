@@ -1,4 +1,10 @@
-<?php session_start(); ?>
+<?php session_start();
+// Se já estiver logado, redireciona direto para a home
+if (!empty($_SESSION['user'])) {
+    header('Location: home.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
