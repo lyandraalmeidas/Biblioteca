@@ -38,8 +38,7 @@
                   <li><span class="dropdown-item-text small text-muted"><?php echo htmlspecialchars($_SESSION['user']['email']); ?></span></li>
                   <li><hr class="dropdown-divider"></li>
                   <li>
-                    <form method="post" class="px-3 py-1">
-                      <input type="hidden" name="action" value="logout">
+                    <form method="post" action="logout.php" class="px-3 py-1">
                       <button type="submit" class="btn btn-link dropdown-item text-danger">
                         <i class="bi bi-box-arrow-right me-1"></i> Sair
                       </button>
