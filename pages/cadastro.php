@@ -19,7 +19,11 @@ if (!empty($_SESSION['user'])) {
     <link rel="stylesheet" href="../CSS/style.css">
 </head>
 <body>
-    <?php include '../partials/header.php'; ?>
+    <?php
+    // hide sidebar and hamburger on registration page
+    $hideSidebar = true;
+    include '../partials/header.php';
+    ?>
 
     <main>
         <div class="w-100" style="max-width: 420px; margin: 32px auto;">

@@ -71,9 +71,18 @@ main {
     /* Let main expand to fill available vertical space so footer sits at page bottom */
     flex: 1 0 auto;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* center the page content horizontally */
     align-items: center;
     padding: 1.25rem 0;
+}
+
+/* Inner wrapper that contains the page's central column. This keeps
+   the main content centered regardless of the fixed sidebar on the left. */
+.page-content {
+    width: 100%;
+    max-width: 980px; /* desirable readable column width */
+    padding: 0 1rem; /* internal breathing room */
+    box-sizing: border-box;
 }
 
 /* Formulário */
@@ -146,4 +155,66 @@ footer {
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     /* Ensure footer sits after main when using flex layout */
     margin-top: auto;
+}
+
+/* Sidebar lateral */
+.sidebar {
+    position: fixed;
+    top: 70px; /* altura estimada do header */
+    left: 0;
+    width: 220px;
+    height: calc(100vh - 70px);
+    background: var(--primary-color);
+    border-right: 1px solid rgba(0,0,0,0.06);
+    padding: 1rem 0.5rem;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+    z-index: 1000;
+}
+
+.sidebar .nav-link {
+    color: var(--accent-color);
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(53,53,53,0.06);
+    color: var(--accent-hover);
+    text-decoration: none;
+}
+
+.sidebar .nav-link.active {
+    background: var(--accent-color);
+    color: #fff !important;
+}
+
+/* Espaço para conteúdo principal quando a sidebar está visível */
+main {
+    margin-left: 0; /* mobile */
+}
+
+@media(min-width: 992px) {
+    /* Em telas grandes, reservar espaço para a sidebar.
+       Instead of shifting the inner centered column, we keep main centered
+       and give the page-content a left padding equal to the sidebar width
+       so the visible column appears centered relative to the remaining area. */
+    main {
+        margin-left: 0; /* keep main centered and let .page-content handle offset */
+    }
+
+    /* push content visually away from the fixed sidebar while keeping it centered
+       within the remaining viewport width */
+    .page-content { padding-left: calc(220px + 1rem); }
+
+    /* esconder o offcanvas toggle (já oculto com d-lg-none) */
+    .offcanvas.offcanvas-start { display: none; }
+}
+
+@media(max-width: 991.98px) {
+    /* Em mobile, não mostrar a sidebar fixa (usar offcanvas) */
+    .sidebar { display: none; }
 }
