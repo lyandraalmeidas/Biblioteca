@@ -1,0 +1,24 @@
+[
+    {
+        "title": "Conexao Teste DB",
+        "isbn": "0000",
+        "year": 2025,
+        "author_id": null,
+        "publisher_id": null,
+        "category_id": null,
+        "created_at": "2025-09-06 21:21:54",
+        "updated_at": "2025-09-06 21:21:54",
+        "id": 1
+    },
+    {
+        "title": "Teste DB 2",
+        "isbn": "1111",
+        "year": 2022,
+        "author_id": null,
+        "publisher_id": null,
+        "category_id": null,
+        "created_at": "2025-09-06 21:29:34",
+        "updated_at": "2025-09-06 21:29:34",
+        "id": 2
+    }
+]

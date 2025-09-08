@@ -18,7 +18,7 @@ if (!empty($_SESSION['user'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/style.css">
 </head>
-<body>
+<body class="no-sidebar">
     <?php
     // hide sidebar and hamburger on login page
     $hideSidebar = true;
@@ -26,8 +26,9 @@ if (!empty($_SESSION['user'])) {
     ?>
 
     <main>
-        <div class="w-100" style="max-width: 360px;">
-            <form action="processa_login.php" method="post">
+        <div class="page-content">
+            <div class="auth-card-wrapper sm">
+                <form action="processa_login.php" method="post">
                 <?php if (!empty($_SESSION['flash'])): ?>
                     <div class="alert alert-info"><?php echo htmlspecialchars($_SESSION['flash']); ?></div>
                     <?php unset($_SESSION['flash']); ?>
@@ -48,6 +49,7 @@ if (!empty($_SESSION['user'])) {
                     <a href="cadastro.php" class="btn btn-outline-pink ms-2">Cadastre-se</a>
                 </div>
             </form>
+            </div>
         </div>
     </main>
 

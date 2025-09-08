@@ -1,0 +1,5 @@
+[2025-09-06 21:29:34] SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'author_id' cannot be null
+2025-09-06T21:48:53+02:00 web_insert_test error: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`biblioteca`.`books`, CONSTRAINT `books_author_id_foreign` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON UPDATE CASCADE)
+2025-09-06T21:52:15+02:00 web_insert_test error: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`biblioteca`.`books`, CONSTRAINT `books_author_id_foreign` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON UPDATE CASCADE)
+2025-09-06T21:55:57+02:00 web_insert_test error: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`biblioteca`.`books`, CONSTRAINT `books_author_id_foreign` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON UPDATE CASCADE)
+2025-09-06T22:04:30+02:00 web_insert_test error: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'author_id' cannot be null

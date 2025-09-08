@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Livros - My Library</title>
+    <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+<header class="border-bottom">
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/bibliotecapessoal/">
+        <i class="bi bi-journal-bookmark"></i>
+        Biblioteca
+      </a>
+      <!-- Sidebar toggle for small screens -->
+      <button class="btn d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Alternar navegação">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+        </div>
+          <ul class="navbar-nav ms-lg-auto align-items-lg-center gap-2">
+                          <li class="nav-item">
+                <a href="index.php" class="btn btn-outline-pink w-100">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="cadastro.php" class="btn btn-pink w-100">
+                  <i class="bi bi-person-plus me-1"></i> Cadastrar
+                </a>
+              </li>
+                      </ul>
+        </div>
+      </div>
+      <!-- Offcanvas sidebar for small screens -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasSidebarLabel">Navegação</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+        </div>
+        <div class="offcanvas-body">
+          <aside class="sidebar" aria-label="Navegação principal">
+	<nav>
+		<ul class="nav flex-column">
+			<li class="nav-item">
+				<a class="nav-link" href="home.php">
+					<i class="bi bi-house-door-fill me-2"></i>
+					<span>Home</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="livros.php">
+					<i class="bi bi-book-fill me-2"></i>
+					<span>Livros</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="tarefas.php">
+					<i class="bi bi-list-task me-2"></i>
+					<span>Tarefas</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="rotina.php">
+					<i class="bi bi-calendar-check-fill me-2"></i>
+					<span>Rotina</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="tempo_uso.php">
+					<i class="bi bi-clock-fill me-2"></i>
+					<span>Tempo de Uso</span>
+				</a>
+			</li>
+		</ul>
+	</nav>
+</aside>
+<!-- toggle moved to header to avoid duplicates when sidebar is included inside offcanvas + fixed layout -->
+<!-- ...existing code... -->
+        </div>
+      </div>
+          </div>
+  </nav>
+</header>
+  <aside class="sidebar" aria-label="Navegação principal">
+	<nav>
+		<ul class="nav flex-column">
+			<li class="nav-item">
+				<a class="nav-link" href="home.php">
+					<i class="bi bi-house-door-fill me-2"></i>
+					<span>Home</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="livros.php">
+					<i class="bi bi-book-fill me-2"></i>
+					<span>Livros</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="tarefas.php">
+					<i class="bi bi-list-task me-2"></i>
+					<span>Tarefas</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="rotina.php">
+					<i class="bi bi-calendar-check-fill me-2"></i>
+					<span>Rotina</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="tempo_uso.php">
+					<i class="bi bi-clock-fill me-2"></i>
+					<span>Tempo de Uso</span>
+				</a>
+			</li>
+		</ul>
+	</nav>
+</aside>
+<!-- toggle moved to header to avoid duplicates when sidebar is included inside offcanvas + fixed layout -->
+<!-- ...existing code... -->
+
+<!-- Botão hamburguer fixo no canto superior esquerdo para mostrar/ocultar a sidebar -->
+<button id="sidebar-toggle" class="btn d-none d-lg-inline-flex" aria-controls="sidebar" aria-expanded="true" title="Mostrar/ocultar menu">
+  <i class="bi bi-list" aria-hidden="true"></i>
+  <span class="visually-hidden">Alternar menu</span>
+</button>
+
+<style>
+/* Minimal styles for the sidebar toggle placed in the header so it loads once */
+#sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1050;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+#sidebar-toggle .bi { font-size: 1.2rem; }
+
+/* Ensure the sidebar has a transition (if not defined elsewhere) */
+.sidebar { transition: transform .22s ease-in-out, visibility .22s ease-in-out; }
+body.sidebar-collapsed .sidebar { transform: translateX(-100%); visibility: hidden; }
+
+/* Hide the toggle on small screens (offcanvas already available) */
+@media(max-width:991.98px){
+  #sidebar-toggle{ display:none !important; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('sidebar-toggle');
+  var body = document.body;
+  if(!btn) return;
+
+  // initialize from localStorage
+  try{
+    var stored = localStorage.getItem('sidebar-collapsed');
+    if(stored === '1'){
+      body.classList.add('sidebar-collapsed');
+      btn.setAttribute('aria-expanded','false');
+    } else {
+      btn.setAttribute('aria-expanded','true');
+    }
+  }catch(e){}
+
+  btn.addEventListener('click', function(){
+    var collapsed = body.classList.toggle('sidebar-collapsed');
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    try{ localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0'); }catch(e){}
+  });
+
+  btn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); btn.click(); }
+  });
+});
+</script>
+<main class="container mt-4">
+    <h1>Livros</h1>
+
+    
+    <p><a class="btn btn-primary" href="home.php">Adicionar novo livro</a></p>
+
+            <p>Nenhum livro cadastrado ainda.</p>
+    
+</main>
+
+<footer class="border-top py-3 mt-auto">
+  <div class="container">
+    <p class="text-center mb-0">&copy; 2025 Biblioteca Pessoal</p>
+  </div>
+</footer></body>
+</html>
+
