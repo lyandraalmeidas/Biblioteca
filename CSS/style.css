@@ -9,7 +9,7 @@
 
 body {
     background-color: var(--background-color);
-    background-image: url('../assets/banner1.png');
+    background-image: url('../assets/simple-bookshelf.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -79,6 +79,8 @@ main {
 /* Inner wrapper that contains the page's central column. This keeps
    the main content centered regardless of the fixed sidebar on the left. */
 .page-content {
+    background-color: var(--primary-color);
+    border-radius: 5%;
     width: 100%;
     max-width: 980px; /* desirable readable column width */
     padding: 0 1rem; /* internal breathing room */
