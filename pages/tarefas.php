@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include '../partials/header.php'; ?>
 
     <main class="page-content">
-                                                                                                                                                                      v                        v                                            v                      98        <div class="container py-4">
+        <div class="container py-4">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-8">
                     <div class="mb-4 text-center">
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="alert alert-info"><?php echo htmlspecialchars($_SESSION['flash']); unset($_SESSION['flash']); ?></div>
                     <?php endif; ?>
 
-                    <form action="tarefas.php" method="post" class="mb-4 ms-md-3">
+                    <form action="tarefas.php" method="post" class="mb-4 task-add-form mx-auto">
                         <input type="hidden" name="action" value="add">
                         <div class="row g-2 align-items-center">
                             <div class="col-12 col-md-7">

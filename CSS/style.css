@@ -85,10 +85,11 @@ main {
    the main content centered regardless of the fixed sidebar on the left. */
 .page-content {
     background-color: var(--primary-color);
-    border-radius: 5%;
+    border-radius: 12px; /* softer corners for harmony */
     width: 100%;
     max-width: 980px; /* desirable readable column width */
-    padding: 0 1rem; /* internal breathing room */
+    padding: 0.75rem 1rem; /* internal breathing room */
+    margin: 0 auto; /* center the content column on all pages */
     box-sizing: border-box;
 }
 
@@ -226,9 +227,10 @@ main {
      /* Reserve the sidebar width on the main container so the centered .page-content
          doesn't need a large internal left padding which pushed content visually
          too far to the right. Keep small internal padding for breathing room. */
-     main { padding-left: 220px; }
-
-     .page-content { padding-left: 1rem; }
+      /* Remove left padding used previously to 'reserve' sidebar space.
+          Centering is handled by .page-content { margin: 0 auto } so pages
+          remain visually centered even with a fixed sidebar. */
+      main { padding-left: 0; }
 
     /* esconder o offcanvas toggle (já oculto com d-lg-none) */
     .offcanvas.offcanvas-start { display: none; }
@@ -339,3 +341,34 @@ main {
     .books-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
     .book-card { aspect-ratio: 1 / 1; }
 }
+
+/* Styles for tasks add form: remove surrounding white card and center fields */
+.task-add-form {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.task-add-form .row.g-2 { align-items: center; }
+
+.task-add-form .form-control {
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #e9e9e9;
+}
+
+@media(min-width: 768px){ .task-add-form{ max-width:760px; } }
+
+/* Center the rotina section inside the page content */
+.routine-wrapper {
+    display: flex;
+    align-items: center;    /* vertical center */
+    justify-content: center; /* horizontal center */
+    min-height: 40vh;       /* keep it centered with breathing room */
+    width: 100%;
+}
+
+@media(max-width: 767.98px){
+    .routine-wrapper { min-height: auto; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+}
+

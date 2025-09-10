@@ -60,6 +60,7 @@ foreach ($allTasks as $t) {
     <?php include __DIR__ . '/../partials/header.php'; ?>
 
     <main class="page-content">
+        <div class="routine-wrapper">
         <div class="container py-4">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-10">
@@ -179,7 +180,8 @@ foreach ($allTasks as $t) {
 
                 </div>
             </div>
-        </div>
+    </div>
+    </div>
     </main>
 
     <?php include __DIR__ . '/../partials/footer.php'; ?>
