@@ -1,6 +1,6 @@
 :root {
     --primary-color: #fff;         
-    --secondary-color: #a19c9c;    
+    --secondary-color: #dddada;    
     --font-color: #353535;            
     --background-color: #f7f7f7;   
     --accent-color: #353535;       /* Rosa suave */
@@ -14,7 +14,7 @@
 
 body {
     background-color: var(--background-color);
-    background-image: url('../assets/banner3.png');
+    background-image: url('../assets/banner4.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -27,14 +27,14 @@ body {
          and scale naturally instead of using a fixed height */
      display: flex;
      flex-direction: column;
-     min-height: 100vh;
+     min-height: 70vh;
 }
 
 /* Header */
 /* Header */
 header {
     /* Use the same translucent white background and accent border as the form */
-    background-color: var(--secondary-color) !important;
+    background-color: var(--primary-color) !important;
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 6px 24px rgba(0,0,0,0.08);
     padding: 10px 0;
@@ -181,7 +181,7 @@ footer {
     width: 220px;
     /* use calc with the CSS variable so height follows any header height changes */
     height: calc(100vh - var(--header-height));
-    background: var(--primary-color);
+    background: var(--secondary-color);
     border-right: 1px solid rgba(0,0,0,0.06);
     padding: 1rem 0.5rem;
     box-shadow: 2px 0 8px rgba(0,0,0,0.03);
