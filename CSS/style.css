@@ -1,6 +1,6 @@
 :root {
     --primary-color: #fff;         
-    --secondary-color: #353535;    
+    --secondary-color: #a19c9c;    
     --font-color: #353535;            
     --background-color: #f7f7f7;   
     --accent-color: #353535;       /* Rosa suave */
@@ -14,7 +14,7 @@
 
 body {
     background-color: var(--background-color);
-    background-image: url('../assets/banner1.png');
+    background-image: url('../assets/banner3.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -34,7 +34,7 @@ body {
 /* Header */
 header {
     /* Use the same translucent white background and accent border as the form */
-    background-color: var(--primary-color) !important;
+    background-color: var(--secondary-color) !important;
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 6px 24px rgba(0,0,0,0.08);
     padding: 10px 0;
@@ -56,7 +56,7 @@ header {
 }
 
 .navbar .navbar-brand, .navbar .nav-link {
-    color: var(--accent-color) !important;
+    color: var(--font-color) !important;
 }
 
 .navbar .btn {
@@ -67,7 +67,7 @@ header {
 header h1 {
     font-family: "Dancing Script", cursive;
     font-size: 26px;
-    color: var(--font-color);
+    color: var(--primary-color) !important;
     margin: 0;
 }
 
@@ -84,6 +84,8 @@ main {
 /* Inner wrapper that contains the page's central column. This keeps
    the main content centered regardless of the fixed sidebar on the left. */
 .page-content {
+    background-color: var(--primary-color);
+    border-radius: 5%;
     width: 100%;
     max-width: 980px; /* desirable readable column width */
     padding: 0 1rem; /* internal breathing room */
