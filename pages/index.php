@@ -1,5 +1,4 @@
 <?php session_start();
-// Se já estiver logado, redireciona direto para a home
 if (!empty($_SESSION['user'])) {
     header('Location: home.php');
     exit;
@@ -20,7 +19,6 @@ if (!empty($_SESSION['user'])) {
 </head>
 <body class="no-sidebar">
     <?php
-    // hide sidebar and hamburger on login page
     $hideSidebar = true;
     include '../partials/header.php';
     ?>

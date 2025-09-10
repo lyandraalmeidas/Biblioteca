@@ -1,10 +1,4 @@
 <?php session_start();
-/**
- * Rotina - página que mostra a rotina diária baseada nas tarefas e sugestões
- * - Mantém o mesmo layout/header/footer do site
- * - Lista tarefas com prazo para hoje e próximos dias
- * - Link rápido para gerenciar tarefas em `pages/tarefas.php`
- */
 
 require_once __DIR__ . '/../app/Task.php';
 use App\Task;
@@ -14,7 +8,6 @@ $tasksFile = $storageDir . '/tasks.json';
 $taskRepo = new Task($tasksFile);
 $allTasks = $taskRepo->all();
 
-// Normalize and sort tasks by due_at if present
 usort($allTasks, function($a, $b){
     $ta = !empty($a['due_at']) ? strtotime($a['due_at']) : PHP_INT_MAX;
     $tb = !empty($b['due_at']) ? strtotime($b['due_at']) : PHP_INT_MAX;
@@ -34,7 +27,6 @@ foreach ($allTasks as $t) {
         } elseif ($d > $today) {
             $upcoming[] = $t;
         } else {
-            // past due -> include in today as overdue indicator
             $todayTasks[] = $t;
         }
     } else {

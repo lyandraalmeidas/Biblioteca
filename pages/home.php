@@ -17,12 +17,10 @@
     <?php include '../partials/header.php'; ?>
 
     <main>
-    <!-- removed welcome header to keep the page focused on the add-book form -->
     <div>
             
     </div>
         <?php
-        // Load .env fallback
         $env = [];
         $envFile = __DIR__ . '/../.env';
         if (file_exists($envFile)) {
@@ -55,7 +53,6 @@
             $pdo = null;
         }
 
-        // Fetch authors/publishers/categories for selects
         $authors = [];
         $publishers = [];
         $categories = [];
@@ -92,7 +89,6 @@
                                 <label class="form-label">Título *</label>
                                 <input class="form-control" name="title" required />
                             </div>
-                            <!-- ISBN removed per request -->
                             <div class="mb-3">
                                 <label class="form-label">Ano</label>
                                 <input class="form-control" name="year" type="number" min="0" />
@@ -123,7 +119,6 @@
                                 <a href="home.php" class="btn btn-outline-pink">Cancelar</a>
                             </div>
                         </form>
-                        <!-- Books table wrapper (hidden by default, toggled by + button) -->
                         <?php
                         $books = [];
                         if (!empty($pdo)) {
@@ -136,7 +131,7 @@
                                      LEFT JOIN categories c ON c.id = b.category_id
                                      ORDER BY b.title"
                                 )->fetchAll(PDO::FETCH_ASSOC);
-                            } catch (Exception $e) { /* ignore */ }
+                            } catch (Exception $e) { }
                         }
                         ?>
 
@@ -180,7 +175,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script> 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> 
 
-    <!-- Floating + button to toggle add-book form -->
     <button id="toggle-books" class="toggle-books-btn" aria-pressed="false" title="Mostrar/ocultar formulário">+</button>
 
     <script>
@@ -195,7 +189,6 @@
             try{ localStorage.setItem('add-book-form-visible', show ? '1' : '0'); }catch(e){}
         }
 
-        // initialize from storage
         try{
             var stored = localStorage.getItem('add-book-form-visible');
             setState(stored === '1');

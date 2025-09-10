@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Load simple .env fallback
 $env = [];
 $envFile = __DIR__ . '/../.env';
 if (file_exists($envFile)) {
@@ -38,11 +37,9 @@ try {
 }
 
 function resolve_redirect(string $to): string {
-    // If $to is an absolute URL or starts with a slash, return as-is
     if (preg_match('#^https?://#i', $to) || strpos($to, '/') === 0) {
         return $to;
     }
-    // Prepend the directory of the current script so relative paths resolve correctly
     $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '\\/');
     return $base . '/' . ltrim($to, '\\/');
 }
@@ -77,7 +74,6 @@ if (!password_verify($senha, $user['password'])) {
     flash_and_redirect('Credenciais inválidas.');
 }
 
-// Successful login
 $_SESSION['user'] = [
     'id' => $user['id'],
     'name' => $user['name'],

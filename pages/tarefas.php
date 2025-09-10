@@ -1,10 +1,8 @@
 <?php session_start();
-// Simple tasks page styled like other pages
 
 require_once __DIR__ . '/../app/Task.php';
 use App\Task;
 
-// storage file path
 $storageDir = __DIR__ . '/../storage';
 $tasksFile = $storageDir . '/tasks.json';
 
@@ -12,27 +10,21 @@ $taskRepo = new Task($tasksFile);
 $tasks = $taskRepo->all();
 
 $flash = null;
-// handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['action']) && $_POST['action'] === 'add') {
         $title = trim($_POST['title'] ?? '');
-        // due_at expected as datetime-local (e.g. 2025-09-08T14:30)
-        // Convert to local 'Y-m-d H:i:s' string without timezone to avoid server TZ conversions
         $dueAtRaw = trim($_POST['due_at'] ?? '');
         $dueAt = null;
         if ($dueAtRaw !== '') {
-            // HTML datetime-local uses "YYYY-MM-DDTHH:MM" or with seconds. Replace 'T' and parse safely.
             $dueAtClean = str_replace('T', ' ', $dueAtRaw);
-            // If seconds are omitted, add :00
             if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $dueAtClean)) {
                 $dueAtClean .= ':00';
             }
-            // validate and normalize
             $ts = strtotime($dueAtClean);
             if ($ts !== false) {
                 $dueAt = date('Y-m-d H:i:s', $ts);
             } else {
-                $dueAt = null; // invalid, ignore
+                $dueAt = null;
             }
         }
         if ($title !== '') {
@@ -49,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $flash = 'Tarefa removida.';
         }
     }
-    // store flash in session and redirect to avoid resubmit
     $_SESSION['flash'] = $flash;
     header('Location: tarefas.php');
     exit;
@@ -127,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     <?php endif; ?>
 
-                    <!-- Botão 'Voltar' removido conforme solicitado -->
+                    
                 </div>
             </div>
         </div>
