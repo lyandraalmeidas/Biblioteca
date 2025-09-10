@@ -23,11 +23,15 @@ body {
     color: var(--font-color);
      margin: 0;
      padding: 0;
-     /* Make the page a vertical flex container so the footer can stick to the bottom
-         and scale naturally instead of using a fixed height */
-     display: flex;
+    /* Make the page a vertical flex container so the footer can stick to the bottom
+        and scale naturally instead of using a fixed height */
+    display: flex;
      flex-direction: column;
-     min-height: 70vh;
+     /* Ensure the page fills the viewport height so footer with margin-top:auto
+        stays pinned to the bottom even on short pages */
+    min-height: 100vh;
+    /* reserve space for fixed header (updated by JS to match actual header height) */
+    padding-top: var(--header-height);
 }
 
 /* Header */
@@ -38,6 +42,12 @@ header {
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 6px 24px rgba(0,0,0,0.08);
     padding: 10px 0;
+    /* keep header visible at top so sidebar and toggle can align to it */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1200;
 }
 
 /* Ensure the inner navbar doesn't introduce a different background color

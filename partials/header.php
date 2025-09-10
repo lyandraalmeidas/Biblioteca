@@ -93,9 +93,10 @@
 /* Minimal styles for the sidebar toggle placed in the header so it loads once */
 #sidebar-toggle {
   position: fixed;
-  top: 12px;
+  /* top will be set relative to the header height so the toggle appears attached */
+  top: calc(var(--header-height) / 2 - 20px); /* center vertically inside header by default */
   left: 12px;
-  z-index: 1050;
+  z-index: 1250; /* above header */
   background: #ffffff;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -145,6 +146,19 @@ document.addEventListener('DOMContentLoaded', function(){
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); btn.click(); }
   });
 });
+</script>
+<script>
+// Keep CSS variables in sync with the actual header size so the sidebar and toggle align
+(function(){
+  function updateHeaderVars(){
+    var header = document.querySelector('header');
+    if(!header) return;
+    var h = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--header-height', h + 'px');
+  }
+  updateHeaderVars();
+  window.addEventListener('resize', function(){ requestAnimationFrame(updateHeaderVars); });
+})();
 </script>
 <script>
 // Usage timer: tracks seconds in localStorage and updates the #usage-clock element
