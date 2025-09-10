@@ -30,7 +30,7 @@
 				</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="tempo_uso.php">
+				<a class="nav-link" href="tempodeuso.php">
 					<i class="bi bi-clock-fill me-2"></i>
 					<span>Tempo de Uso</span>
 				</a>

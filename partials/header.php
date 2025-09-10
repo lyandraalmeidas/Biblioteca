@@ -8,6 +8,11 @@
         <i class="bi bi-journal-bookmark"></i>
         Biblioteca
       </a>
+      <!-- Usage clock: mostra tempo de uso acumulado no navegador -->
+      <div class="d-none d-lg-flex ms-3 align-items-center" id="usage-clock-container" title="Tempo de uso neste navegador">
+        <i class="bi bi-clock-fill me-2"></i>
+        <span id="usage-clock" style="font-weight:600;color:var(--accent-color);">00:00:00</span>
+      </div>
       <!-- Sidebar toggle for small screens -->
       <button class="btn d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
         <i class="bi bi-list"></i>
@@ -140,4 +145,43 @@ document.addEventListener('DOMContentLoaded', function(){
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); btn.click(); }
   });
 });
+</script>
+<script>
+// Usage timer: tracks seconds in localStorage and updates the #usage-clock element
+(function(){
+  var KEY = 'usage_seconds_v1';
+  var display = document.getElementById('usage-clock');
+  if(!display) return;
+
+  // load stored seconds (number)
+  var seconds = 0;
+  try{ seconds = parseInt(localStorage.getItem(KEY) || '0', 10) || 0; }catch(e){ seconds = 0; }
+
+  function fmt(s){
+    var h = Math.floor(s/3600); s = s%3600; var m = Math.floor(s/60); var sec = s%60;
+    return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  }
+
+  // update display initially
+  display.textContent = fmt(seconds);
+
+  // increment every second
+  var interval = setInterval(function(){
+    seconds += 1;
+    display.textContent = fmt(seconds);
+    try{ localStorage.setItem(KEY, String(seconds)); }catch(e){}
+  }, 1000);
+
+  // clear timer when user logs out (detect logout forms/buttons)
+  document.addEventListener('submit', function(e){
+    var form = e.target;
+    if(!form || !form.action) return;
+    if(form.action.indexOf('logout') !== -1){
+      try{ localStorage.removeItem(KEY); }catch(e){}
+    }
+  }, true);
+
+  // Optional: expose a small API for other scripts
+  window.__usageTimer = { getSeconds: function(){ return seconds; }, reset: function(){ seconds = 0; display.textContent = fmt(0); try{ localStorage.setItem(KEY,'0'); }catch(e){} } };
+})();
 </script>
