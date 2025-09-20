@@ -1,4 +1,8 @@
-<?php session_start(); ?>
+<?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Repositories\BookRepository;
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -21,53 +25,22 @@
             
     </div>
         <?php
-        $env = [];
-        $envFile = __DIR__ . '/../.env';
-        if (file_exists($envFile)) {
-            foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-                $line = trim($line);
-                if ($line === '' || strpos($line, '#') === 0) continue;
-                if (strpos($line, '=') === false) continue;
-                [$k, $v] = explode('=', $line, 2);
-                $env[trim($k)] = trim($v, " \"'");
-            }
-        }
-
-        $dbConnection = getenv('DB_CONNECTION') ?: ($env['DB_CONNECTION'] ?? 'sqlite');
+        $authors = $publishers = $categories = [];
         try {
-            if (strtolower($dbConnection) === 'mysql') {
-                $dbHost = getenv('DB_HOST') ?: ($env['DB_HOST'] ?? '127.0.0.1');
-                $dbPort = getenv('DB_PORT') ?: ($env['DB_PORT'] ?? '3306');
-                $dbName = getenv('DB_DATABASE') ?: ($env['DB_DATABASE'] ?? '');
-                $dbUser = getenv('DB_USERNAME') ?: ($env['DB_USERNAME'] ?? 'root');
-                $dbPass = getenv('DB_PASSWORD') ?: ($env['DB_PASSWORD'] ?? '');
-                $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
-                $pdo = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            } else {
-                $dbPath = __DIR__ . '/../database/database.sqlite';
-                $pdo = new PDO('sqlite:' . $dbPath);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            }
-        } catch (Exception $e) {
-            echo "<div class='container mt-4'><div class='alert alert-danger'>Erro ao conectar ao banco de dados.</div></div>";
-            $pdo = null;
+            $repo = new BookRepository();
+            // Reutilizamos as tabelas diretamente via simples consultas do repositório (vamos expor métodos mínimos):
+            // Para evitar estender demais agora, usamos PDO do repositório para buscar as listas.
+            $ref = new \ReflectionClass($repo);
+            $prop = $ref->getProperty("pdo");
+            $prop->setAccessible(true);
+            /** @var PDO $pdo */
+            $pdo = $prop->getValue($repo);
+            $authors = $pdo->query('SELECT id, name FROM authors ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $publishers = $pdo->query('SELECT id, name FROM publishers ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            echo "<div class='container mt-4'><div class='alert alert-danger'>Erro ao carregar dados.</div></div>";
         }
-
-        $authors = [];
-        $publishers = [];
-        $categories = [];
-        if (!empty($pdo)) {
-            try {
-                $authors = $pdo->query('SELECT id, name FROM authors ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
-            } catch (Exception $e) { }
-            try {
-                $publishers = $pdo->query('SELECT id, name FROM publishers ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
-            } catch (Exception $e) { }
-            try {
-                $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
-            } catch (Exception $e) { }
-        }
-
         ?>
 
         <div class="page-content">
@@ -120,18 +93,10 @@
                             </div>
                         </form>
                         <?php
-                        $books = [];
-                        if (!empty($pdo)) {
-                            try {
-                                $books = $pdo->query(
-                                    "SELECT b.id, b.title, b.year, b.isbn, a.name as author, p.name as publisher, c.name as category
-                                     FROM books b
-                                     LEFT JOIN authors a ON a.id = b.author_id
-                                     LEFT JOIN publishers p ON p.id = b.publisher_id
-                                     LEFT JOIN categories c ON c.id = b.category_id
-                                     ORDER BY b.title"
-                                )->fetchAll(PDO::FETCH_ASSOC);
-                            } catch (Exception $e) { }
+                        try {
+                            $books = (new BookRepository())->listWithRelations();
+                        } catch (\Throwable $e) {
+                            $books = [];
                         }
                         ?>
 

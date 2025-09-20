@@ -1,16 +1,32 @@
 <?php
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
-// Basic POST handler to save favorite book IDs into storage/favorites.json
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: livros.php');
-    exit;
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Services\FavoriteService;
+use App\Support\Http;
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+    Http::redirect('livros.php');
+}
+
+// must be logged in
+if (empty($_SESSION['user']['id'])) {
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+    if (str_contains($accept, 'application/json')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'error' => 'login_required']);
+        exit;
+    }
+    Http::flashAndRedirect('flash_error', 'Faça login para favoritar livros.', 'index.php');
 }
 
 // accept JSON body for fetch as well
 $bookId = 0;
 if (isset($_POST['book_id'])) {
-    $bookId = (int)$_POST['book_id'];
+    $bookId = (int)($_POST['book_id'] ?? 0);
 } else {
     $raw = file_get_contents('php://input');
     if ($raw) {
@@ -20,45 +36,25 @@ if (isset($_POST['book_id'])) {
         }
     }
 }
+
 if ($bookId <= 0) {
     $_SESSION['flash_error'] = 'ID de livro inválido.';
-    header('Location: livros.php');
-    exit;
+    Http::redirect('livros.php');
 }
 
-$storageDir = __DIR__ . '/../storage';
-if (!is_dir($storageDir)) @mkdir($storageDir, 0755, true);
-$favoritesFile = $storageDir . '/favorites.json';
+$service = new FavoriteService();
+$userId = (int)$_SESSION['user']['id'];
+$result = $service->toggle($userId, $bookId);
 
-$favorites = [];
-if (file_exists($favoritesFile)) {
-    $content = file_get_contents($favoritesFile);
-    $decoded = json_decode($content, true);
-    if (is_array($decoded)) $favorites = $decoded;
-}
-
-// Toggle: remove if exists, otherwise add
-$action = '';
-if (in_array($bookId, $favorites, true)) {
-    // remove
-    $favorites = array_values(array_filter($favorites, function($v) use ($bookId) { return $v !== $bookId; }));
-    file_put_contents($favoritesFile, json_encode($favorites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    $_SESSION['flash_success'] = 'Livro removido dos favoritos.';
-    $action = 'removed';
-} else {
-    $favorites[] = $bookId;
-    file_put_contents($favoritesFile, json_encode(array_values($favorites), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    $_SESSION['flash_success'] = 'Livro adicionado aos favoritos.';
-    $action = 'added';
-}
+$_SESSION['flash_success'] = $result['action'] === 'added' ? 'Livro adicionado aos favoritos.' : 'Livro removido dos favoritos.';
 
 // If request expects JSON (AJAX), return JSON
 $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
-if (strpos($accept, 'application/json') !== false || strpos($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') !== false) {
+if (str_contains($accept, 'application/json') || str_contains($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest')) {
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => true, 'action' => $action, 'favorites' => array_values($favorites)]);
+    echo json_encode(['success' => true] + $result);
     exit;
 }
 
-header('Location: livros.php');
+Http::redirect('livros.php');
 exit;

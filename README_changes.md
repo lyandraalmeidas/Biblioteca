@@ -17,3 +17,24 @@ Próximos passos sugeridos:
 - Mostrar estado "já favoritado" no botão (ex.: ícone preenchido) lendo `storage/favorites.json`.
 - Persistência por usuário no banco de dados.
 - Adicionar confirmação visual imediata com JavaScript (AJAX) para evitar reload.
+
+Atualização (2025-09-20): refatoração para Orientação a Objetos
+
+- Criado um conjunto de classes para organizar a lógica, mantendo as páginas e URLs como estão:
+	- `app/Support`: `Env`, `Database`, `Http`, `Storage`, `Str`
+	- `app/Repositories`: `UserRepository`, `BookRepository`
+	- `app/Services`: `AuthService`, `FavoriteService`
+- Páginas atualizadas para usar as classes (sem alterar a aparência/comportamento):
+	- `pages/processa_login.php`
+	- `pages/processa_favorito.php`
+	- `pages/processa_livro.php`
+	- `pages/livros.php`
+
+Observações
+- Autoload via Composer: as páginas agora chamam `require_once __DIR__ . '/../vendor/autoload.php';`. Garanta que o `composer install` foi executado e que o PHP é 8.2+.
+- Banco: respeita `.env` (mysql/sqlite). Padrão: SQLite em `database/database.sqlite`.
+- Favoritos: persistidos em `storage/favorites.json` através do `FavoriteService`.
+
+Como testar rapidamente
+- Login: http://localhost/biblioteca/pages/index.php
+- Livros: http://localhost/biblioteca/pages/livros.php
