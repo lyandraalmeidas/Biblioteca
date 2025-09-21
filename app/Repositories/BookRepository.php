@@ -19,6 +19,37 @@ class BookRepository
     }
 
     /**
+     * Delete a book/media by id. Also removes dependent rows in favorites and reading_stats.
+     */
+    public function deleteById(int $id): bool
+    {
+        if ($id <= 0) return false;
+        try {
+            $this->pdo->beginTransaction();
+            // Remove dependent rows (best-effort)
+            try {
+                $stmt = $this->pdo->prepare('DELETE FROM favorites WHERE book_id = :id');
+                $stmt->execute([':id' => $id]);
+            } catch (\Throwable $e) { /* ignore if table missing */ }
+            try {
+                $stmt = $this->pdo->prepare('DELETE FROM reading_stats WHERE book_id = :id');
+                $stmt->execute([':id' => $id]);
+            } catch (\Throwable $e) { /* ignore if table missing */ }
+
+            $stmt = $this->pdo->prepare('DELETE FROM books WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            $ok = $stmt->rowCount() > 0;
+            $this->pdo->commit();
+            return $ok;
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            return false;
+        }
+    }
+
+    /**
      * @return array<int, array<string,mixed>>
      */
     public function listWithRelations(): array

@@ -1,4 +1,7 @@
-<?php session_start(); ?>
+<?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
+require_once __DIR__ . '/../vendor/autoload.php';
+use App\Repositories\ReadingStatRepository;
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -33,10 +36,54 @@
                             </div>
                         </div>
 
-                        <div class="card mb-4">
+
+                        <?php
+                        $userId = $_SESSION['user']['id'] ?? null;
+                        $dbTotal = 0; $dbDays = []; $topBooks = []; $allBooks = [];
+                        if ($userId) {
+                            try {
+                                $repo = new ReadingStatRepository();
+                                $dbTotal = $repo->totalSeconds((int)$userId);
+                                $dbDays = $repo->lastDaysByDate((int)$userId, 7);
+                                $topBooks = $repo->topBooks((int)$userId, 10);
+                                $allBooks = $repo->listAllBooksWithUserTime((int)$userId);
+                            } catch (Throwable $e) {
+                                $dbTotal = 0; $dbDays = []; $topBooks = []; $allBooks = [];
+                            }
+                        }
+                        ?>
+
+                        <div class="card mb-4 border-success">
                             <div class="card-body">
-                                <h5 class="card-title">Histórico dos últimos 7 dias</h5>
-                                <div id="usage-history">Carregando histórico...</div>
+                                <h5 class="card-title"><i class="bi bi-cloud-arrow-down-fill me-2"></i>Tempo de leitura salvo no banco</h5>
+                                <?php if (!$userId): ?>
+                                    <div class="alert alert-warning">Entre na sua conta para ver seu tempo de leitura sincronizado.</div>
+                                <?php else: ?>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-5">
+                                            <div class="p-3 bg-light rounded border">
+                                                <div class="text-muted small">Total (todos os livros)</div>
+                                                <div style="font-size:1.6rem;font-weight:700;" id="db-total">00:00:00</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-7">
+                                            <div>
+                                                <div class="text-muted small mb-2">Últimos 7 dias</div>
+                                                <div id="db-history"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <div>
+                                        <div class="text-muted small mb-2">Top livros por tempo</div>
+                                        <div id="db-top-books"></div>
+                                    </div>
+                                    <hr />
+                                    <div>
+                                        <div class="text-muted small mb-2">Todos os livros (tempo total)</div>
+                                        <div id="db-all-books"></div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -72,7 +119,7 @@
         const KEY_TOTAL = 'usageSeconds';
         const KEY_HIST = 'usageHistory'; // array de {date: 'YYYY-MM-DD', seconds: n}
         const DISPLAY = document.getElementById('usage-total');
-        const HIST = document.getElementById('usage-history');
+        const HIST = document.getElementById('usage-history'); // pode não existir
         const BTN_RESET = document.getElementById('reset-usage');
         const BTN_EXPORT = document.getElementById('export-usage');
 
@@ -101,13 +148,16 @@
             raw.forEach(it => { if(it && it.date){ map[it.date] = (map[it.date]||0) + (Number(it.seconds)||0); } });
             const days = [];
             for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=d.toISOString().slice(0,10); days.push({date: ds, seconds: map[ds]||0}); }
-            const max = Math.max(1, ...days.map(d=>d.seconds));
-            HIST.innerHTML = days.map(d => `
-                <div class="mb-2">
-                    <div class="d-flex justify-content-between small"> <div>${d.date.replace(/^\d{4}-/,'')}</div> <div>${fmt(d.seconds)}</div> </div>
-                    <div class="usage-bar-bg mt-1"><div class="usage-bar" style="width:${Math.round(100*d.seconds/max)}%"></div></div>
-                </div>
-            `).join('');
+            const toShow = days.slice(1); // remove o primeiro (mais antigo)
+            if (HIST) {
+                const max = Math.max(1, ...toShow.map(d=>d.seconds));
+                HIST.innerHTML = toShow.map(d => `
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small"> <div>${d.date.replace(/^\d{4}-/,'')}</div> <div>${fmt(d.seconds)}</div> </div>
+                        <div class="usage-bar-bg mt-1"><div class="usage-bar" style="width:${Math.round(100*d.seconds/max)}%"></div></div>
+                    </div>
+                `).join('');
+            }
         }
 
         // registra segundos passados desde que a aba ficou visível
@@ -149,5 +199,56 @@
         window.addEventListener('beforeunload', stopTick);
     })();
     </script>
+
+    <?php if ($userId): ?>
+    <script>
+    // Render dados do banco (fornecidos pelo PHP via JSON embutido)
+    (function(){
+        const total = <?php echo json_encode((int)$dbTotal); ?>;
+    const days = <?php echo json_encode($dbDays, JSON_UNESCAPED_UNICODE); ?>;
+    const top = <?php echo json_encode($topBooks, JSON_UNESCAPED_UNICODE); ?>;
+    const allBooks = <?php echo json_encode($allBooks, JSON_UNESCAPED_UNICODE); ?>;
+
+        function fmt(sec){ sec = Math.max(0, Math.floor(sec||0)); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+        const dbTotalEl = document.getElementById('db-total'); if (dbTotalEl) dbTotalEl.textContent = fmt(total);
+        const histEl = document.getElementById('db-history');
+        if (histEl) {
+            const toShow = days.slice(1); // remove o primeiro (mais antigo)
+            const max = Math.max(1, ...toShow.map(d=>d.seconds||0));
+            histEl.innerHTML = toShow.map(d => `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small"><div>${String(d.date).replace(/^\d{4}-/,'')}</div><div>${fmt(d.seconds||0)}</div></div>
+                    <div class="usage-bar-bg mt-1"><div class="usage-bar" style="width:${Math.round(100*(d.seconds||0)/max)}%"></div></div>
+                </div>
+            `).join('');
+        }
+        const topEl = document.getElementById('db-top-books');
+        if (topEl) {
+            if (!top || !top.length) { topEl.innerHTML = '<div class="text-muted">Sem leituras registradas ainda.</div>'; return; }
+            const max = Math.max(1, ...top.map(t=>t.seconds||0));
+            topEl.innerHTML = top.map(t => `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small"><div>${(t.title||('Livro #' + t.book_id))}</div><div>${fmt(t.seconds||0)}</div></div>
+                    <div class="usage-bar-bg mt-1"><div class="usage-bar" style="width:${Math.round(100*(t.seconds||0)/max)}%"></div></div>
+                </div>
+            `).join('');
+        }
+
+        const allEl = document.getElementById('db-all-books');
+        if (allEl) {
+            if (!allBooks || !allBooks.length) { allEl.innerHTML = '<div class="text-muted">Sem itens cadastrados.</div>'; }
+            else {
+                const max = Math.max(1, ...allBooks.map(t=>t.seconds||0));
+                allEl.innerHTML = allBooks.map(t => `
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small"><div>${(t.title||('Livro #' + t.book_id))}</div><div>${fmt(t.seconds||0)}</div></div>
+                        <div class="usage-bar-bg mt-1"><div class="usage-bar" style="width:${Math.round(100*(t.seconds||0)/max)}%"></div></div>
+                    </div>
+                `).join('');
+            }
+        }
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>
