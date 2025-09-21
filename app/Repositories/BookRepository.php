@@ -10,6 +10,8 @@ use PDOException;
 class BookRepository
 {
     private PDO $pdo;
+    /** @var array<string,bool> */
+    private array $columnExistsCache = [];
 
     public function __construct(?PDO $pdo = null)
     {
@@ -21,7 +23,9 @@ class BookRepository
      */
     public function listWithRelations(): array
     {
-        $sql = "SELECT b.id, b.title, b.year, b.isbn, a.name AS author_name, c.name AS category_name, p.name AS publisher_name, b.created_at
+        $hasType = $this->columnExists('books', 'type');
+        $typeSelect = $hasType ? 'b.type' : "'book' AS type";
+        $sql = "SELECT b.id, b.title, {$typeSelect}, b.year, b.isbn, a.name AS author_name, c.name AS category_name, p.name AS publisher_name, b.created_at
                 FROM books b
                 LEFT JOIN authors a ON b.author_id = a.id
                 LEFT JOIN categories c ON b.category_id = c.id
@@ -86,20 +90,85 @@ class BookRepository
     }
 
     /**
-     * Create a new book record.
+     * Create a new book/media record.
+     *
+     * @param string $type One of: 'book', 'film', 'series'
      */
-    public function create(string $title, ?int $year, ?int $authorId, ?int $publisherId, ?int $categoryId): void
+    public function create(string $title, ?int $year, ?int $authorId, ?int $publisherId, ?int $categoryId, string $type = 'book'): void
     {
         $now = date('Y-m-d H:i:s');
-        $stmt = $this->pdo->prepare('INSERT INTO books (title, year, author_id, publisher_id, category_id, created_at, updated_at) VALUES (:title, :year, :author_id, :publisher_id, :category_id, :created_at, :updated_at)');
-        $stmt->execute([
-            ':title' => $title,
-            ':year' => $year,
-            ':author_id' => $authorId,
-            ':publisher_id' => $publisherId,
-            ':category_id' => $categoryId,
-            ':created_at' => $now,
-            ':updated_at' => $now,
-        ]);
+        // Normalize/validate type defensively at repository level too
+        $type = in_array($type, ['book','film','series'], true) ? $type : 'book';
+
+        $hasType = $this->columnExists('books', 'type');
+        if ($hasType) {
+            $stmt = $this->pdo->prepare('INSERT INTO books (title, type, year, author_id, publisher_id, category_id, created_at, updated_at) VALUES (:title, :type, :year, :author_id, :publisher_id, :category_id, :created_at, :updated_at)');
+            $stmt->execute([
+                ':title' => $title,
+                ':type' => $type,
+                ':year' => $year,
+                ':author_id' => $authorId,
+                ':publisher_id' => $publisherId,
+                ':category_id' => $categoryId,
+                ':created_at' => $now,
+                ':updated_at' => $now,
+            ]);
+        } else {
+            // Fallback for DBs that haven't run the migration yet
+            $stmt = $this->pdo->prepare('INSERT INTO books (title, year, author_id, publisher_id, category_id, created_at, updated_at) VALUES (:title, :year, :author_id, :publisher_id, :category_id, :created_at, :updated_at)');
+            $stmt->execute([
+                ':title' => $title,
+                ':year' => $year,
+                ':author_id' => $authorId,
+                ':publisher_id' => $publisherId,
+                ':category_id' => $categoryId,
+                ':created_at' => $now,
+                ':updated_at' => $now,
+            ]);
+        }
+    }
+
+    /**
+     * Check if a column exists on a table for the current PDO driver.
+     */
+    private function columnExists(string $table, string $column): bool
+    {
+        $key = strtolower($table . '.' . $column);
+        if (array_key_exists($key, $this->columnExistsCache)) {
+            return $this->columnExistsCache[$key];
+        }
+        try {
+            $driver = strtolower((string) $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+            if ($driver === 'mysql' || $driver === 'mariadb') {
+                $stmt = $this->pdo->prepare("SHOW COLUMNS FROM `{$table}` LIKE :col");
+                $stmt->execute([':col' => $column]);
+                $exists = (bool) $stmt->fetch();
+            } elseif ($driver === 'sqlite') {
+                $stmt = $this->pdo->prepare("PRAGMA table_info(`{$table}`)");
+                $stmt->execute();
+                $exists = false;
+                while ($row = $stmt->fetch()) {
+                    if (isset($row['name']) && strtolower((string)$row['name']) === strtolower($column)) {
+                        $exists = true;
+                        break;
+                    }
+                }
+            } else {
+                // Fallback generic attempt
+                $stmt = $this->pdo->query("SELECT * FROM `{$table}` LIMIT 0");
+                $exists = false;
+                for ($i = 0; $i < $stmt->columnCount(); $i++) {
+                    $meta = $stmt->getColumnMeta($i);
+                    if (isset($meta['name']) && strtolower((string)$meta['name']) === strtolower($column)) {
+                        $exists = true;
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $exists = false;
+        }
+        $this->columnExistsCache[$key] = $exists;
+        return $exists;
     }
 }

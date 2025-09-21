@@ -1,12 +1,19 @@
 <?php session_start();
 
-require_once __DIR__ . '/../app/Task.php';
-use App\Task;
+use App\Repositories\TaskRepository;
 
-$storageDir = __DIR__ . '/../storage';
-$tasksFile = $storageDir . '/tasks.json';
-$taskRepo = new Task($tasksFile);
-$allTasks = $taskRepo->all();
+require_once __DIR__ . '/../vendor/autoload.php';
+
+if (empty($_SESSION['user']['id'])) {
+    $_SESSION['flash'] = 'Faça login para ver sua rotina.';
+    header('Location: index.php');
+    exit;
+}
+
+$userId = (int)($_SESSION['user']['id']);
+
+$taskRepo = new TaskRepository();
+$allTasks = $taskRepo->allByUser($userId);
 
 usort($allTasks, function($a, $b){
     $ta = !empty($a['due_at']) ? strtotime($a['due_at']) : PHP_INT_MAX;
@@ -80,7 +87,10 @@ foreach ($allTasks as $t) {
                                                     <div>
                                                         <strong><?php echo htmlspecialchars($t['title']); ?></strong>
                                                         <div class="small text-muted">
-                                                            Criada: <?php echo htmlspecialchars($t['created_at'] ?? '-'); ?>
+                                                            Criada: <?php
+                                                                $created = $t['created_at'] ?? null;
+                                                                echo htmlspecialchars($created ? date('d/m/Y H:i', strtotime($created)) : '-');
+                                                            ?>
                                                             <?php if (!empty($t['due_at'])): ?>
                                                                 <br>Prazo: <?php echo htmlspecialchars(date('d/m/Y H:i', strtotime($t['due_at']))); ?>
                                                             <?php endif; ?>
@@ -97,7 +107,7 @@ foreach ($allTasks as $t) {
                                     <?php endif; ?>
                                     <div class="mt-3 d-flex gap-2">
                                         <a href="tarefas.php" class="btn btn-outline-pink">Gerenciar tarefas</a>
-                                        <a href="tempo_uso.php" class="btn btn-pink">Ver tempo de uso</a>
+                                        <a href="tempodeuso.php" class="btn btn-pink">Ver tempo de uso</a>
                                     </div>
                                 </div>
                             </div>

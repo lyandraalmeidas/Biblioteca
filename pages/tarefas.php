@@ -1,13 +1,20 @@
 <?php session_start();
 
-require_once __DIR__ . '/../app/Task.php';
-use App\Task;
+use App\Repositories\TaskRepository;
 
-$storageDir = __DIR__ . '/../storage';
-$tasksFile = $storageDir . '/tasks.json';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$taskRepo = new Task($tasksFile);
-$tasks = $taskRepo->all();
+// Require authentication
+if (empty($_SESSION['user']['id'])) {
+    $_SESSION['flash'] = 'Faça login para acessar suas tarefas.';
+    header('Location: index.php');
+    exit;
+}
+
+$userId = (int)$_SESSION['user']['id'];
+
+$taskRepo = new TaskRepository();
+$tasks = $taskRepo->allByUser($userId);
 
 $flash = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -28,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         if ($title !== '') {
-            $taskRepo->add($title, $dueAt);
+            $taskRepo->add($userId, $title, $dueAt);
             $flash = 'Tarefa adicionada.';
         } else {
             $flash = 'O título da tarefa não pode ficar vazio.';
@@ -37,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['action']) && $_POST['action'] === 'delete') {
         $id = $_POST['id'] ?? null;
         if ($id !== null) {
-            $taskRepo->delete($id);
+            $taskRepo->delete($userId, (int)$id);
             $flash = 'Tarefa removida.';
         }
     }

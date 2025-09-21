@@ -1,3 +1,14 @@
+## 2025-09-20
+
+- Adicionado suporte a tipos de mídia (Livro, Filme, Série):
+	- Nova coluna `type` na tabela `books` (migração `2025_09_20_120000_add_type_to_books_table.php`).
+	- Formulário em `pages/home.php` agora tem um select "Tipo".
+	- `pages/processa_livro.php` salva o tipo escolhido.
+	- Listagens em `home.php` e `livros.php` exibem o tipo.
+
+Como aplicar:
+- Execute as migrações para criar a coluna `type` antes de usar o novo formulário.
+
 Mudanças realizadas:
 
 - `pages/livros.php`: Substituída a tabela por um grid de "cards" para cada livro; adicionado formulário simples de favoritar (POST para `pages/processa_favorito.php`) e exibição de mensagens flash via session.

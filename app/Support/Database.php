@@ -13,6 +13,13 @@ class Database
      */
     public static function pdo(): PDO
     {
+        // Ensure a consistent timezone across the app before any date() usage
+        static $tzSet = false;
+        if (!$tzSet) {
+            $tz = Env::get('APP_TIMEZONE', 'America/Sao_Paulo') ?? 'America/Sao_Paulo';
+            @date_default_timezone_set($tz);
+            $tzSet = true;
+        }
         $conn = strtolower(Env::get('DB_CONNECTION', 'sqlite') ?? 'sqlite');
         if ($conn === 'mysql') {
             $host = Env::get('DB_HOST', '127.0.0.1') ?? '127.0.0.1';
@@ -26,6 +33,17 @@ class Database
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
+            // Align MySQL session time_zone with PHP if TIMESTAMP columns are used
+            try {
+                $tz = date_default_timezone_get();
+                // MySQL accepts named timezones if timezone tables are loaded; otherwise, use offset
+                // Attempt named timezone first, fallback to offset.
+                $pdo->exec("SET time_zone = '" . str_replace("'", "''", $tz) . "'");
+            } catch (\Throwable $e) {
+                // Fallback: compute current offset like +03:00
+                $offset = (new \DateTime('now'))->format('P');
+                try { $pdo->exec("SET time_zone = '" . $offset . "'"); } catch (\Throwable $e2) { /* ignore */ }
+            }
             return $pdo;
         }
 

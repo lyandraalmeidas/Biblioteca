@@ -17,17 +17,33 @@ class FavoriteRepository
 
     private function ensureSchema(): void
     {
-        // Create table if not exists (for plain PHP usage without migrations)
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS favorites (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                book_id INTEGER NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )'
-        );
-        // Basic index to speed up toggles
-        $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_favorites_user_book ON favorites(user_id, book_id)');
+        // Create table if not exists (supporting sqlite and mysql/mariadb)
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'mysql') {
+            // MySQL/MariaDB syntax
+            $this->pdo->exec(
+                'CREATE TABLE IF NOT EXISTS favorites (
+                    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    user_id INT UNSIGNED NOT NULL,
+                    book_id INT UNSIGNED NOT NULL,
+                    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    INDEX idx_favorites_user_book (user_id, book_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+            );
+        } else {
+            // SQLite syntax
+            $this->pdo->exec(
+                'CREATE TABLE IF NOT EXISTS favorites (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    book_id INTEGER NOT NULL,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )'
+            );
+            // Basic index to speed up toggles (SQLite supports IF NOT EXISTS)
+            $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_favorites_user_book ON favorites(user_id, book_id)');
+        }
     }
 
     /**

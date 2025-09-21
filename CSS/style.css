@@ -284,7 +284,7 @@ main {
     color: #444;
 }
 
-.favorite-action { z-index: 1200; }
+.favorite-action { z-index: 900; }
 .btn-favorite { text-decoration: none; }
 .btn-favorite .bi { transition: transform 0.12s ease, opacity 0.12s ease; }
 .btn-favorite:active .bi { transform: scale(0.92); }

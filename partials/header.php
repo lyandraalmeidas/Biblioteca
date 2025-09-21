@@ -1,9 +1,21 @@
 <?php
+// Compute a robust base URL for this app (e.g., "/biblioteca/") so links work from any page depth.
+// This avoids relative path issues like on pages/livros.php for the logout action.
+$__docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])) : '';
+$__appRoot = str_replace('\\', '/', realpath(dirname(__DIR__))); // one level up from /partials -> app root folder
+if ($__docRoot && strpos($__appRoot, $__docRoot) === 0) {
+    $__basePath = rtrim(substr($__appRoot, strlen($__docRoot)), '/');
+} else {
+    // Fallback to current script directory if document root resolution fails
+    $__basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
+}
+$__baseUrl = ($__basePath === '') ? '/' : ($__basePath . '/');
+unset($__docRoot, $__appRoot, $__basePath);
 ?>
 <header class="border-bottom">
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="/bibliotecapessoal/">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="<?php echo htmlspecialchars($__baseUrl . (isset($_SESSION['user']) ? 'pages/home.php' : 'pages/index.php')); ?>">
         <i class="bi bi-journal-bookmark"></i>
         Biblioteca
       </a>
@@ -25,12 +37,12 @@
         <ul class="navbar-nav ms-lg-auto align-items-lg-center gap-2">
           <?php if (!isset($_SESSION['user'])) { ?>
             <li class="nav-item">
-              <a href="index.php" class="btn btn-outline-pink w-100">
+              <a href="<?php echo htmlspecialchars($__baseUrl . 'pages/index.php'); ?>" class="btn btn-outline-pink w-100">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Login
               </a>
             </li>
             <li class="nav-item">
-              <a href="cadastro.php" class="btn btn-pink w-100">
+              <a href="<?php echo htmlspecialchars($__baseUrl . 'pages/cadastro.php'); ?>" class="btn btn-pink w-100">
                 <i class="bi bi-person-plus me-1"></i> Cadastrar
               </a>
             </li>
@@ -44,7 +56,7 @@
                 <li><span class="dropdown-item-text small text-muted"><?php echo htmlspecialchars($_SESSION['user']['email']); ?></span></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                  <form method="post" action="logout.php" class="px-3 py-1">
+                  <form method="post" action="<?php echo htmlspecialchars($__baseUrl . 'pages/logout.php'); ?>" class="px-3 py-1">
                     <button type="submit" class="btn btn-link dropdown-item text-danger">
                       <i class="bi bi-box-arrow-right me-1"></i> Sair
                     </button>

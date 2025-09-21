@@ -55,13 +55,14 @@ use App\Services\FavoriteService; ?>
 					$id = (int)($r['id'] ?? 0);
 					$title = htmlspecialchars($r['title'] ?? '');
 					$author = htmlspecialchars($r['author_name'] ?? '');
+					$type = htmlspecialchars($r['type'] ?? 'book');
 					$year = htmlspecialchars((string)($r['year'] ?? ''));
 					$genre = htmlspecialchars($r['category_name'] ?? '');
 					$publisher = htmlspecialchars($r['publisher_name'] ?? '');
 
 					echo '<article class="book-card card">';
 					echo '<div class="card-body">';
-					echo "<h5 class=\"card-title\">{$title}</h5>";
+					echo "<h5 class=\"card-title\">{$title} <small class=\"text-muted\">(" . ($type === 'book' ? 'Livro' : ($type === 'film' ? 'Filme' : 'Série')) . ")</small></h5>";
 					echo "<p class=\"card-subtitle text-muted\">{$author}</p>";
 					echo "<p class=\"card-text small\"><strong>Ano:</strong> {$year} &nbsp; <strong>Gênero:</strong> {$genre}</p>";
 					echo "<p class=\"card-text small text-muted\"><strong>Editora:</strong> {$publisher}</p>";
@@ -73,6 +74,22 @@ use App\Services\FavoriteService; ?>
 					echo '<i class="bi ' . $heartClass . '" style="font-size:1.4rem; color:#e53935;"></i>';
 					echo '</button>';
 					echo '</div>';
+
+					// Timer (livro/série) e Assistido (filme)
+					if ($type === 'film') {
+						// Filme: botão de "já assisti" + status
+						echo '<div class="d-flex align-items-center gap-2 mt-3">';
+						echo '<span class="film-status" data-item-id="' . $id . '"></span>';
+						echo '<button type="button" class="btn btn-sm btn-outline-success btn-watched" data-item-id="' . $id . '"><i class="bi bi-eye-fill me-1"></i><span>Já assisti</span></button>';
+						echo '</div>';
+					} else {
+						// Livro ou Série: timer local por item
+						echo '<div class="d-flex align-items-center gap-2 mt-3">';
+						echo '<span class="badge bg-light text-dark"><i class="bi bi-alarm me-1"></i> <span class="item-timer" data-item-id="' . $id . '">00:00:00</span></span>';
+						echo '<button type="button" class="btn btn-sm btn-outline-primary btn-timer" data-item-id="' . $id . '"><i class="bi bi-play-fill me-1"></i><span>Iniciar</span></button>';
+						echo '<button type="button" class="btn btn-sm btn-outline-secondary btn-reset-timer" data-item-id="' . $id . '"><i class="bi bi-arrow-counterclockwise me-1"></i>Resetar</button>';
+						echo '</div>';
+					}
 
 					echo '</div>';
 					echo '</article>';
@@ -122,6 +139,45 @@ use App\Services\FavoriteService; ?>
 			});
 		}
 		document.querySelectorAll('.btn-favorite').forEach(function(b){ b.addEventListener('click', onClick); });
+	})();
+	</script>
+
+	<script>
+	// Timer por item (livros/séries) e status de filme assistido — persistência no localStorage
+	(function(){
+		const KEY_TIMERS = 'itemTimers_v1'; // { [id]: { seconds:number, running:boolean, lastStart:number } }
+		const KEY_WATCHED = 'watchedFilms_v1'; // { [id]: true }
+		let state = loadTimers();
+		let watched = loadWatched();
+		let tickInterval = null;
+
+		function loadTimers(){ try { return JSON.parse(localStorage.getItem(KEY_TIMERS) || '{}') || {}; } catch(e){ return {}; } }
+		function saveTimers(v){ try { localStorage.setItem(KEY_TIMERS, JSON.stringify(v)); } catch(e){} }
+		function loadWatched(){ try { return JSON.parse(localStorage.getItem(KEY_WATCHED) || '{}') || {}; } catch(e){ return {}; } }
+		function saveWatched(v){ try { localStorage.setItem(KEY_WATCHED, JSON.stringify(v)); } catch(e){} }
+		function now(){ return Math.floor(Date.now()/1000); }
+		function fmt(sec){ sec = Math.max(0, Math.floor(sec||0)); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+		function getSeconds(id){ const t = state[id]; if(!t) return 0; let s = t.seconds||0; if(t.running && t.lastStart){ s += now() - t.lastStart; } return s; }
+		function updateTimerUI(id){ const total = getSeconds(id); document.querySelectorAll('.item-timer[data-item-id="'+id+'"]').forEach(el => el.textContent = fmt(total)); const running = !!(state[id] && state[id].running);
+			document.querySelectorAll('.btn-timer[data-item-id="'+id+'"]').forEach(btn => { const icon = btn.querySelector('i'); const txt = btn.querySelector('span'); if(running){ btn.classList.remove('btn-outline-primary'); btn.classList.add('btn-outline-danger'); if(icon) icon.className = 'bi bi-pause-fill me-1'; if(txt) txt.textContent = 'Pausar'; } else { btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-outline-primary'); if(icon) icon.className = 'bi bi-play-fill me-1'; if(txt) txt.textContent = 'Iniciar'; } });
+		}
+		function pauseAllExcept(id){ Object.keys(state).forEach(k=>{ if(k!==String(id) && state[k] && state[k].running){ const n = now(); const t = state[k]; t.seconds = (t.seconds||0) + Math.max(0, n - (t.lastStart||n)); t.running = false; t.lastStart = 0; updateTimerUI(k); } }); saveTimers(state); }
+		function toggleTimer(id){ id = String(id); if(!state[id]) state[id] = {seconds:0,running:false,lastStart:0}; if(state[id].running){ const n=now(); state[id].seconds = (state[id].seconds||0) + Math.max(0, n - (state[id].lastStart||n)); state[id].running = false; state[id].lastStart = 0; } else { pauseAllExcept(id); state[id].running = true; state[id].lastStart = now(); }
+			saveTimers(state); updateTimerUI(id); ensureTick(); }
+		function resetTimer(id){ id=String(id); const wasRunning = !!(state[id] && state[id].running); state[id] = {seconds:0,running:false,lastStart:0}; saveTimers(state); updateTimerUI(id); if(wasRunning) ensureTick(); }
+		function ensureTick(){ if(tickInterval) return; tickInterval = setInterval(()=>{ let any=false; Object.keys(state).forEach(id=>{ if(state[id] && state[id].running){ any=true; updateTimerUI(id); } }); if(!any){ clearInterval(tickInterval); tickInterval=null; } }, 1000); }
+
+		// Bind timer buttons
+		document.querySelectorAll('.btn-timer').forEach(btn=>{ btn.addEventListener('click', function(){ const id = this.getAttribute('data-item-id'); toggleTimer(id); }); });
+		document.querySelectorAll('.btn-reset-timer').forEach(btn=>{ btn.addEventListener('click', function(){ const id = this.getAttribute('data-item-id'); if(confirm('Zerar o timer deste item?')) resetTimer(id); }); });
+		document.querySelectorAll('.item-timer').forEach(el=>{ updateTimerUI(el.getAttribute('data-item-id')); });
+
+		// Filmes: Assistido
+		function renderWatched(id){ id=String(id); const isW = !!watched[id]; document.querySelectorAll('.btn-watched[data-item-id="'+id+'"]').forEach(btn=>{ const span = btn.querySelector('span'); if(isW){ btn.classList.add('btn-success'); btn.classList.remove('btn-outline-success'); if(span) span.textContent='Assistido'; } else { btn.classList.remove('btn-success'); btn.classList.add('btn-outline-success'); if(span) span.textContent='Já assisti'; } }); document.querySelectorAll('.film-status[data-item-id="'+id+'"]').forEach(el=>{ el.innerHTML = isW ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Assistido</span>' : '<span class="badge bg-secondary"><i class="bi bi-circle me-1"></i>Não assistido</span>'; }); }
+		function toggleWatched(id){ id=String(id); watched[id] = !watched[id]; saveWatched(watched); renderWatched(id); }
+		document.querySelectorAll('.btn-watched').forEach(btn=>{ btn.addEventListener('click', function(){ const id = this.getAttribute('data-item-id'); toggleWatched(id); }); });
+		document.querySelectorAll('.film-status').forEach(el=>{ renderWatched(el.getAttribute('data-item-id')); });
 	})();
 	</script>
 </body>

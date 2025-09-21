@@ -48,7 +48,7 @@ use App\Repositories\BookRepository;
                 <div class="row justify-content-center">
                     <div class="col-12 col-lg-8">
                         <div class="mb-4 text-center">
-                            <h2 class="mb-0">Adicionar novo livro</h2>
+                            <h2 class="mb-0" id="add-form-title">Adicionar novo item</h2>
                             <hr />
                         </div>
 
@@ -57,38 +57,46 @@ use App\Repositories\BookRepository;
                         <?php endif; ?>
 
                         <form id="add-book-form" action="processa_livro.php" method="post" class="mb-4">
-                            <h2 class="visually-hidden">Formulário adicionar livro</h2>
+                            <h2 class="visually-hidden">Formulário adicionar item</h2>
                             <div class="mb-3">
-                                <label class="form-label">Título *</label>
-                                <input class="form-control" name="title" required />
+                                <label class="form-label" for="field-type">Tipo</label>
+                                <select id="field-type" name="type" class="form-select">
+                                    <option value="book">Livro</option>
+                                    <option value="film">Filme</option>
+                                    <option value="series">Série</option>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Ano</label>
-                                <input class="form-control" name="year" type="number" min="0" />
+                                <label class="form-label" for="field-title" id="label-title">Título *</label>
+                                <input id="field-title" class="form-control" name="title" required />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Autor *</label>
-                                <input class="form-control" name="author" required />
-                                <div class="form-text">Escreva o nome do autor (ex: João Silva)</div>
+                                <label class="form-label" for="field-year" id="label-year">Ano</label>
+                                <input id="field-year" class="form-control" name="year" type="number" min="0" />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Editora</label>
-                                <input list="publishers-list" class="form-control" name="publisher" />
+                                <label class="form-label" for="field-author" id="label-author">Autor *</label>
+                                <input id="field-author" class="form-control" name="author" required />
+                                <div class="form-text" id="help-author">Escreva o nome do autor (ex: João Silva)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="field-publisher" id="label-publisher">Editora</label>
+                                <input id="field-publisher" list="publishers-list" class="form-control" name="publisher" />
                                 <datalist id="publishers-list">
                                     <?php foreach ($publishers as $p): ?>
                                         <option value="<?php echo htmlspecialchars($p['name']); ?>"></option>
                                     <?php endforeach; ?>
                                 </datalist>
-                                <div class="form-text">Escreva ou selecione a editora (ex: Editora XYZ)</div>
+                                <div class="form-text" id="help-publisher">Escreva ou selecione a editora (ex: Editora XYZ)</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Categoria</label>
-                                <input class="form-control" name="category" />
-                                <div class="form-text">Escreva a categoria (ex: Romance)</div>
+                                <label class="form-label" for="field-category" id="label-category">Categoria</label>
+                                <input id="field-category" class="form-control" name="category" />
+                                <div class="form-text" id="help-category">Escreva a categoria (ex: Romance)</div>
                             </div>
 
                             <div class="d-flex gap-2">
-                                <button class="btn btn-pink" type="submit">Salvar livro</button>
+                                <button id="btn-submit" class="btn btn-pink" type="submit">Salvar item</button>
                                 <a href="home.php" class="btn btn-outline-pink">Cancelar</a>
                             </div>
                         </form>
@@ -110,6 +118,7 @@ use App\Repositories\BookRepository;
                                         <thead>
                                             <tr>
                                                 <th>Título</th>
+                                                <th>Tipo</th>
                                                 <th>Autor</th>
                                                 <th>Editora</th>
                                                 <th>Categoria</th>
@@ -121,9 +130,10 @@ use App\Repositories\BookRepository;
                                             <?php foreach ($books as $b): ?>
                                                 <tr>
                                                     <td><?php echo htmlspecialchars($b['title']); ?></td>
-                                                    <td><?php echo htmlspecialchars($b['author'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($b['publisher'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($b['category'] ?? ''); ?></td>
+                                                    <td><?php echo htmlspecialchars($b['type'] ?? 'book'); ?></td>
+                                                    <td><?php echo htmlspecialchars($b['author_name'] ?? ''); ?></td>
+                                                    <td><?php echo htmlspecialchars($b['publisher_name'] ?? ''); ?></td>
+                                                    <td><?php echo htmlspecialchars($b['category_name'] ?? ''); ?></td>
                                                     <td><?php echo htmlspecialchars($b['year'] ?? ''); ?></td>
                                                     <td><?php echo htmlspecialchars($b['isbn'] ?? ''); ?></td>
                                                 </tr>
@@ -166,6 +176,104 @@ use App\Repositories\BookRepository;
                 setTimeout(function(){ form.scrollIntoView({behavior:'smooth', block:'center'}); }, 120);
             }
         });
+    })();
+    </script>
+    <script>
+    // Dynamic labels/placeholders per selected type
+    (function(){
+        var typeSel = document.getElementById('field-type');
+        if (!typeSel) return;
+
+        var h2 = document.getElementById('add-form-title');
+        var lblTitle = document.getElementById('label-title');
+        var lblYear = document.getElementById('label-year');
+        var lblAuthor = document.getElementById('label-author');
+        var lblPublisher = document.getElementById('label-publisher');
+        var lblCategory = document.getElementById('label-category');
+        var helpAuthor = document.getElementById('help-author');
+        var helpPublisher = document.getElementById('help-publisher');
+        var helpCategory = document.getElementById('help-category');
+        var inTitle = document.getElementById('field-title');
+        var inAuthor = document.getElementById('field-author');
+        var inPublisher = document.getElementById('field-publisher');
+        var inCategory = document.getElementById('field-category');
+        var btnSubmit = document.getElementById('btn-submit');
+
+        function setLabels(type){
+            // Defaults for Livro
+            var map = {
+                title: 'Título *',
+                year: 'Ano',
+                author: 'Autor *',
+                publisher: 'Editora',
+                category: 'Categoria',
+                helpAuthor: 'Escreva o nome do autor (ex: João Silva)',
+                helpPublisher: 'Escreva ou selecione a editora (ex: Editora XYZ)',
+                helpCategory: 'Escreva a categoria (ex: Romance)',
+                heading: 'Adicionar novo Livro',
+                submit: 'Salvar livro',
+                placeholders: {
+                    title: 'Ex: Dom Casmurro',
+                    author: 'Ex: Machado de Assis',
+                    publisher: 'Ex: Editora XYZ',
+                    category: 'Ex: Romance'
+                }
+            };
+
+            if (type === 'film'){
+                map.author = 'Diretor *';
+                map.publisher = 'Produtora/Estúdio';
+                map.category = 'Gênero';
+                map.helpAuthor = 'Escreva o nome do diretor (ex: Christopher Nolan)';
+                map.helpPublisher = 'Escreva a produtora ou estúdio (ex: Warner Bros.)';
+                map.helpCategory = 'Escreva o gênero (ex: Ação)';
+                map.heading = 'Adicionar novo Filme';
+                map.submit = 'Salvar filme';
+                map.placeholders = {
+                    title: 'Ex: O Senhor dos Anéis',
+                    author: 'Ex: Peter Jackson',
+                    publisher: 'Ex: New Line Cinema',
+                    category: 'Ex: Fantasia'
+                };
+            } else if (type === 'series'){
+                map.author = 'Criador *';
+                map.publisher = 'Produtora/Estúdio';
+                map.category = 'Gênero';
+                map.helpAuthor = 'Escreva o nome do criador (ex: Vince Gilligan)';
+                map.helpPublisher = 'Escreva a produtora ou estúdio (ex: AMC Studios)';
+                map.helpCategory = 'Escreva o gênero (ex: Drama)';
+                map.heading = 'Adicionar nova Série';
+                map.submit = 'Salvar série';
+                map.placeholders = {
+                    title: 'Ex: Breaking Bad',
+                    author: 'Ex: Vince Gilligan',
+                    publisher: 'Ex: AMC Studios',
+                    category: 'Ex: Drama'
+                };
+            }
+
+            if (h2) h2.textContent = map.heading;
+            if (lblTitle) lblTitle.textContent = map.title;
+            if (lblYear) lblYear.textContent = map.year;
+            if (lblAuthor) lblAuthor.textContent = map.author;
+            if (lblPublisher) lblPublisher.textContent = map.publisher;
+            if (lblCategory) lblCategory.textContent = map.category;
+            if (helpAuthor) helpAuthor.textContent = map.helpAuthor;
+            if (helpPublisher) helpPublisher.textContent = map.helpPublisher;
+            if (helpCategory) helpCategory.textContent = map.helpCategory;
+            if (btnSubmit) btnSubmit.textContent = map.submit;
+
+            if (inTitle) inTitle.placeholder = map.placeholders.title;
+            if (inAuthor) inAuthor.placeholder = map.placeholders.author;
+            if (inPublisher) inPublisher.placeholder = map.placeholders.publisher;
+            if (inCategory) inCategory.placeholder = map.placeholders.category;
+        }
+
+        // Initialize on load
+        try { setLabels(typeSel.value); } catch(e) {}
+
+        // Update on change
+        typeSel.addEventListener('change', function(){ setLabels(typeSel.value); });
     })();
     </script>
 </body>
