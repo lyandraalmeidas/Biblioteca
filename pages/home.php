@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Repositories\BookRepository;
+use App\Repositories\ReadingStatRepository;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -26,6 +27,10 @@ use App\Repositories\BookRepository;
     </div>
         <?php
         $authors = $publishers = $categories = [];
+        $recommendations = [
+            'inProgressBooks' => [],
+            'unseenMedia' => [],
+        ];
         try {
             $repo = new BookRepository();
             // Reutilizamos as tabelas diretamente via simples consultas do repositório (vamos expor métodos mínimos):
@@ -38,6 +43,72 @@ use App\Repositories\BookRepository;
             $authors = $pdo->query('SELECT id, name FROM authors ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
             $publishers = $pdo->query('SELECT id, name FROM publishers ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
             $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            // Helper para verificar coluna existente (similar ao BookRepository::columnExists)
+            $dbHasColumn = function(PDO $pdo, string $table, string $column): bool {
+                try {
+                    $driver = strtolower((string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+                    if ($driver === 'mysql' || $driver === 'mariadb') {
+                        $st = $pdo->prepare("SHOW COLUMNS FROM `{$table}` LIKE :col");
+                        $st->execute([':col' => $column]);
+                        return (bool)$st->fetch();
+                    } elseif ($driver === 'sqlite') {
+                        $st = $pdo->prepare("PRAGMA table_info(`{$table}`)");
+                        $st->execute();
+                        while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+                            if (isset($row['name']) && strtolower((string)$row['name']) === strtolower($column)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    } else {
+                        $st = $pdo->query("SELECT * FROM `{$table}` LIMIT 0");
+                        for ($i = 0; $i < $st->columnCount(); $i++) {
+                            $meta = $st->getColumnMeta($i);
+                            if (isset($meta['name']) && strtolower((string)$meta['name']) === strtolower($column)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            };
+
+            // Gera recomendações somente se usuário logado
+            $userId = isset($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : null;
+            if ($userId) {
+                // Garante a existência de reading_stats (best effort)
+                new ReadingStatRepository($pdo);
+
+                $hasType = $dbHasColumn($pdo, 'books', 'type');
+
+                // 1) Livros em andamento (com tempo > 0), ord. por última atividade
+                $sqlInProgress = 'SELECT b.id, b.title, ' . ($hasType ? 'b.type' : "'book' AS type") . ', COALESCE(SUM(rs.seconds),0) AS seconds, MAX(rs.updated_at) AS last_at
+                                  FROM reading_stats rs
+                                  JOIN books b ON b.id = rs.book_id
+                                  WHERE rs.user_id = :uid ' . ($hasType ? "AND b.type = 'book'" : '') . '
+                                  GROUP BY b.id, b.title' . ($hasType ? ', b.type' : '') . '
+                                  HAVING COALESCE(SUM(rs.seconds),0) > 0
+                                  ORDER BY last_at DESC
+                                  LIMIT 6';
+                try {
+                    $st = $pdo->prepare($sqlInProgress);
+                    $st->execute([':uid' => $userId]);
+                    $recommendations['inProgressBooks'] = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                } catch (\Throwable $e) { /* ignora */ }
+
+                // 2) Filmes e séries não assistidos (sem qualquer tempo registrado)
+                if ($hasType) {
+                    $sqlUnseen = "SELECT b.id, b.title, b.type, b.year\n                                   FROM books b\n                                   LEFT JOIN reading_stats rs\n                                     ON rs.book_id = b.id AND rs.user_id = :uid\n                                   WHERE b.type IN ('film','series') AND rs.book_id IS NULL\n                                   ORDER BY b.created_at DESC\n                                   LIMIT 8";
+                    try {
+                        $st = $pdo->prepare($sqlUnseen);
+                        $st->execute([':uid' => $userId]);
+                        $recommendations['unseenMedia'] = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                    } catch (\Throwable $e) { /* ignora */ }
+                }
+            }
         } catch (\Throwable $e) {
             echo "<div class='container mt-4'><div class='alert alert-danger'>Erro ao carregar dados.</div></div>";
         }
@@ -143,6 +214,61 @@ use App\Repositories\BookRepository;
                                 </div>
                             <?php endif; ?>
                         </div>
+                        <!-- Recomendações: exibido quando o formulário estiver oculto -->
+                        <div id="recommendations" class="mt-4" style="display:none;">
+                            <h3 class="mb-3">Recomendações</h3>
+
+                            <?php if (!isset($_SESSION['user'])): ?>
+                                <div class="alert alert-warning">Entre na sua conta para ver recomendações personalizadas.</div>
+                            <?php else: ?>
+                                <div class="row g-3">
+                                    <div class="col-12 col-lg-6">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Continue lendo</h5>
+                                                <?php if (empty($recommendations['inProgressBooks'])): ?>
+                                                    <p class="text-muted mb-0">Nenhum livro em andamento ainda.</p>
+                                                <?php else: ?>
+                                                    <ul class="list-group list-group-flush">
+                                                        <?php foreach ($recommendations['inProgressBooks'] as $it): ?>
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <span><?php echo htmlspecialchars($it['title']); ?></span>
+                                                                <span class="badge text-bg-secondary"><?php echo (int)($it['seconds'] ?? 0); ?>s</span>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-lg-6">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Para assistir</h5>
+                                                <?php if (empty($recommendations['unseenMedia'])): ?>
+                                                    <p class="text-muted mb-0">Sem novas sugestões de filmes e séries.</p>
+                                                <?php else: ?>
+                                                    <ul class="list-group list-group-flush">
+                                                        <?php foreach ($recommendations['unseenMedia'] as $it): ?>
+                                                            <li class="list-group-item">
+                                                                <span class="me-2 badge text-bg-info" style="text-transform:capitalize;">
+                                                                    <?php echo htmlspecialchars($it['type'] ?? ''); ?>
+                                                                </span>
+                                                                <strong><?php echo htmlspecialchars($it['title']); ?></strong>
+                                                                <?php if (!empty($it['year'])): ?>
+                                                                    <small class="text-muted">(<?php echo (int)$it['year']; ?>)</small>
+                                                                <?php endif; ?>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -156,11 +282,13 @@ use App\Repositories\BookRepository;
     (function(){
         var btn = document.getElementById('toggle-books');
         var form = document.getElementById('add-book-form');
+        var recs = document.getElementById('recommendations');
         if(!btn || !form) return;
 
         function setState(show){
             form.style.display = show ? '' : 'none';
             btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+            if (recs) recs.style.display = show ? 'none' : '';
             try{ localStorage.setItem('add-book-form-visible', show ? '1' : '0'); }catch(e){}
         }
 
